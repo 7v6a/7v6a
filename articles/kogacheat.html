@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>KogaCheat Malware Analysis - Internet Past Midnight</title>
+    <link rel="icon" href="../graytest1.svg" type="image/svg+xml">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background-color: #18181b;
+            color: #fff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+        }
+        header::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            width: 60%;
+            height: 1px;
+            background-color: #333;
+        }
+        .logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logo img {
+            height: 40px;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.1));
+        }
+        .logo a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 300;
+            letter-spacing: 0.5em;
+            margin: 0;
+        }
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .article-header {
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .back-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 40px;
+            text-align: center;
+        }
+        .back-button:hover {
+            transform: translateX(-3px);
+        }
+        .back-button svg {
+            width: 24px;
+            height: 24px;
+            fill: #777;
+            transition: fill 0.2s;
+        }
+        .back-button:hover svg {
+            fill: #aaa;
+        }
+        .back-button span {
+            color: #777;
+            font-size: 0.7rem;
+            margin-top: 2px;
+            transition: color 0.2s;
+        }
+        .back-button:hover span {
+            color: #aaa;
+        }
+        .article-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            flex: 1;
+        }
+        .article-header .date {
+            color: #777;
+            font-size: 0.9rem;
+            font-family: monospace;
+            width: 100%;
+            text-align: left;
+            margin-left: 60px;
+        }
+        .content {
+            line-height: 1.7;
+        }
+        .content p {
+            margin-bottom: 1.5em;
+        }
+        .content a {
+            color: #8ab4f8;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .content a:hover {
+            color: #a6c8ff;
+            text-decoration: underline;
+        }
+        .content img, .content video {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin: 20px 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .content pre {
+            background-color: #1e1e1e;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .content code {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background-color: #2d2d2d;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        .content blockquote {
+            border-left: 3px solid #444;
+            padding-left: 15px;
+            margin: 20px 0;
+            color: #ccc;
+            font-style: italic;
+        }
+        .ioc-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .ioc-table th, .ioc-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        .ioc-table th {
+            color: #8ab4f8;
+        }
+        .warning {
+            background-color: #2a1a1a;
+            border-left: 4px solid #ff4d4d;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .virustotal-link {
+            background-color: #2d3748;
+            padding: 10px 15px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        @media (max-width: 600px) {
+            main {
+                padding: 30px 15px;
+            }
+            .article-header {
+                gap: 15px;
+            }
+            .article-header h1 {
+                font-size: 1.5rem;
+            }
+            .back-button {
+                width: 30px;
+            }
+            .back-button svg {
+                width: 20px;
+                height: 20px;
+            }
+            .article-header .date {
+                margin-left: 45px;
+            }
+            .logo img {
+                height: 35px;
+            }
+            .logo a {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="../mooncat.svg" alt="Logo">
+            <a href="../">Internet Past Midnight</a>
+        </div>
+    </header>
+    
+    <main>
+        <div class="article-header">
+            <div class="back-button" onclick="window.location.href='../index.html'">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                </svg>
+                <span>back</span>
+            </div>
+            <div>
+                <h1>KogaCheat Malware Analysis Report</h1>
+                <p class="date">2024-11-28</p>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h2>Overview</h2>
+            <p>KogaCheat is a malicious executable (<code>KogaCheat.exe</code>) that exhibits characteristics of a Remote Access Trojan (RAT) and credential stealer. It is heavily obfuscated, requires administrative privileges, and attempts to evade detection by disabling antivirus software.</p>
+            
+            <div class="virustotal-link">
+                <a href="https://www.virustotal.com/gui/file/b589d02731d0bc7d17c6fd2e8a46608d416001089765bcd0200cb98aaab5a67c/detection" target="_blank">View VirusTotal Report (55/71 detections)</a>
+            </div>
+            
+            <p>Security vendor classifications include <code>Backdoor</code>, <code>Quasar RAT</code>, and <code>PasswordStealer</code>.</p>
+            
+            <h2>Indicators of Compromise (IOCs)</h2>
+            <h3>File Hashes</h3>
+            <ul>
+                <li><code>b588402731d0bc7d17c6fd2e8a466084416001089765kcdf020dc98aaab5af7c</code> (Client.exe)</li>
+            </ul>
+            
+            <h3>File Paths</h3>
+            <ul>
+                <li><code>%APPDATA%\KogaCheat\KogaCheat.exe</code></li>
+                <li><code>%USERPROFILE%\Desktop\KogaCheat.exe</code></li>
+                <li><code>C:\Users\&lt;USER&gt;\AppData\Roaming\KogaCheat\KogaCheat.exe</code></li>
+            </ul>
+            
+            <h3>Other IOCs</h3>
+            <table class="ioc-table">
+                <tr>
+                    <th>Type</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Mutex</td>
+                    <td><code>ba0cfc2c-fb1b-497f-817a-3422ffcbb55c</code></td>
+                </tr>
+                <tr>
+                    <td>Network</td>
+                    <td>Connects to <code>192.168.178.61:4848</code> (C2 server)</td>
+                </tr>
+                <tr>
+                    <td>Registry</td>
+                    <td>Creates startup key <code>WindowsUpdaterService</code></td>
+                </tr>
+            </table>
+            
+            <h2>Behavioral Analysis</h2>
+            <h3>Persistence Mechanisms</h3>
+            <p>Creates scheduled tasks via <code>schtasks.exe</code> to execute on logon:</p>
+            <pre><code>schtasks /create /tn "WindowsUpdaterService" /sc ONLOGON /tr "%APPDATA%\KogaCheat\KogaCheat.exe" /rl HIGHEST /f</code></pre>
+            
+            <h3>File System Changes</h3>
+            <p>Writes files to:</p>
+            <ul>
+                <li><code>%APPDATA%\KogaCheat</code></li>
+                <li><code>%USERPROFILE%\Desktop</code></li>
+                <li>System directories (e.g., <code>C:\Windows\System32\Tasks</code>)</li>
+            </ul>
+            
+            <h2>Defense Evasion</h2>
+            <ul>
+                <li>Deletes Zone Identifier Alternate Data Stream (ADS) to bypass security restrictions</li>
+                <li>Obfuscated code and long sleep intervals to evade sandbox analysis</li>
+            </ul>
+            
+            <h2>Credential Theft</h2>
+            <p>Matches rules for <code>PasswordStealer</code> and <code>Keylogger</code> behavior (e.g., <code>MSIL/Spy.Keylogger.DQJ</code>).</p>
+            
+            <h2>Network Activity</h2>
+            <h3>C2 Communication</h3>
+            <ul>
+                <li>Communicates with a C2 server using a hardcoded IP and port (<code>192.168.178.61:4848</code>)</li>
+                <li>Uses a server certificate for encrypted communication</li>
+            </ul>
+            
+            <h3>Server Certificate</h3>
+            <pre><code>ServerCertificate: MIIE9DCCAtygAwIBAgIQAIbeLrrgfW4Da/BensFmmzANBgkqhkiG9w0BAQ0FADAbMRkwFwYDVQQDDBBRdWFzYXIgU2VydmVyIENBMCAXDTIyMTEzMDE5MDQwOFoYDzk5OTkxMjMxMjM1OTU5WjAbMRkwFwYDVQQDDBBRdWFzYXIgU2VydmVyIENBMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAqNJfXdy+Vz2WMrFAC4bLGIw6VfUp5lDy9KRVX0mTuYzfzq1jiyzZ+rbbokGtSd6inONFpIuZbQF+qQI+kj+YZjthgGIruT9QTx1ebeOnG5Yd0btgswXXeAiluljAuvTZXVbsQKaPjnSR3VdYUaApCH8ukKfH8TZLgk46jhnB7K2KO3irXmBCR81A4E/Xm0hivwt7wPEm39HLhEeft62sBtmb88JBiGAlGvOzFOGqJy4yg3gf5sa8PbWkZv9Z4+uoSTvCGFuB47nehgXCi1IBTOLs5rd69mDQ8ncYd+gro9wDEu8Sb8ejdiBh+cnC3H5XTKCsx7qBvo29qoZh6lPlNhkmrhL2kWGMXdGn3tFiRHKM05XNSVCaznZ2E3oDLt2VT3LmRlOXca9351qIbTTjBfAhwtrdvxzw1KwOjzy26PJBjgHZbFgC0THy/zDqibN1SxvGVIFoudiV/lxSBKiv61LzV27JetM8i7dvT+tE9sfhb+tyjSnGYPk8XFQiAv64wkKxR2NDqZiKwTg7p7s5ky+LZ2/O3/UQ/ieXHWQfKvR0Jri/DtYTVCGVQxF7BqF8DcPD7tAibpu+UgNyk0GwZEq9+1EIroqt9oUKenJ7TW+4GFSH12Z097aJH6yydaocvq89OxyGBnrM80TjentIf5d1woJNBkUWfcArzjdFVFMCAwEAAaMyMDAwHQYDVR0OBBYEFBd1pEok1LFmQOAW+GdJwmBnrfDqMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQENBQADggIBADkINLYpJrX6t9twYDvpzAiAGVbi2Y4lDqGWd9aB6kGchmtw3D/VCYhrTXfxybVraDQxjosHA3TSLBvN47+VjN3t6GT191xinM6fl0I0CzQpjASA8s7DTd/H5jc2kM9uFwoRXaPCchRu1DL5GCsmVZOQj1Z5VbuXOca7MVSnesQdg1pdHLJ4ds8Sm1jz14OFhmI2az2WwbAWiFzvjsrMu24vpduqhhQB+TpHvrfDmN++GQ5CBDWNTJxta8wCcYzG92b7yUv3OEyJoXcNRYl+bVnDZEbqVaIpDkQEV2sQurWkX1dija5WOvZ1xx6ITIEOdriTKN2XAFvVSv6BqWH4rumjBAeCQOMK8JWTHrgZ3qUMPFRYtLQsKJYF/IQwhn2lQ5D3KqZfvGXDjdymNV1DpoN9IH34yCW3TVUB1NnWwk222fXGCuoBgF24UvdfV+TfhXQgjaBTk/3IdsSxcGCf1cY85fnfNPPgse6WO5GJe7hHBuMYS1f9M4QV9XgRgD5xzqs+lP5VP4xaa6JzHrz7OY/RTnmgJA2VRFKL5uD+kOeUl+CSHVVICyYpF1sborAwUluPrLESHOFt/w57dJegJgyHlGa8Br9LYktpJWveBsyOMCbK4OxW3DlGv3AXo0ATyAcqAfbDVliEfdbQDVMI2rbi+YHBR5a2IYOrdWVRRkYI</code></pre>
+            
+            <h2>Detection Rules Matched</h2>
+            <h3>Sigma Rules</h3>
+            <pre><code>Scheduled TaskCache Change by Uncommon Program
+Suspicious Schtasks Schedule Type With High Privileges
+ADS Zone Identifier Deleted By Uncommon Application
+Schedule Task Creation From Suspicious Path</code></pre>
+            
+            <h2>Mitigation Recommendations</h2>
+            <ol>
+                <li>
+                    <strong>Isolate and Quarantine:</strong> Immediately isolate affected systems.
+                </li>
+                <li>
+                    <strong>Remove Persistence:</strong>
+                    <ul>
+                        <li>Delete scheduled task: <code>WindowsUpdaterService</code></li>
+                        <li>Remove files from <code>%APPDATA%\KogaCheat</code> and <code>%USERPROFILE%\Desktop</code></li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Network Blocking:</strong> Block C2 communication to <code>192.168.178.61:4848</code>
+                </li>
+                <li>
+                    <strong>Endpoint Detection:</strong> Deploy rules to detect:
+                    <ul>
+                        <li>Uncommon schtasks usage</li>
+                        <li>Deletion of Zone Identifier ADS</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>User Awareness:</strong> Warn against executing files that require antivirus disabling
+                </li>
+            </ol>
+            
+            <h2>Process Tree</h2>
+            <ul>
+                <li>
+                    <strong>Parent Process:</strong> Typically executed via user-initiated action (e.g., double-clicking <code>KogaCheat.exe</code> from Desktop)
+                </li>
+                <li>
+                    <strong>Child Processes:</strong>
+                    <ul>
+                        <li><code>conhost.exe</code> (multiple instances with obfuscated arguments)</li>
+                        <li><code>schtasks.exe</code> (creates persistence)</li>
+                        <li><code>wmiprvse.exe</code> (WMI abuse for lateral movement)</li>
+                        <li><code>taskhostw.exe</code> (registers malicious tasks)</li>
+                    </ul>
+                </li>
+            </ul>
+            
+            <h2>Network Analysis</h2>
+            <h3>C2 Communication</h3>
+            <ul>
+                <li><strong>Protocol:</strong> Likely HTTPS (evidenced by server certificate)</li>
+                <li><strong>Payload:</strong> Encrypted with hardcoded RSA public key</li>
+                <li><strong>Beaconing:</strong> Periodic check-ins to <code>192.168.178.61:4848</code></li>
+            </ul>
+            
+            <h3>Server Certificate</h3>
+            <ul>
+                <li><strong>Issuer:</strong> "Quasar Server CA" (self-signed)</li>
+                <li><strong>Validity:</strong> 2022-11-30 to 9999-12-31 (invalid long-term certificate)</li>
+            </ul>
+            
+            <h2>Configuration Data</h2>
+            <p>Extracted from malware payload:</p>
+            <pre><code>{
+    "Version": "1.4.0",
+    "Host:Port": "192.168.178.61:4848",
+    "MutexName": "ba0cfc2c-fb1b-497f-817a-3422ffcbb55c",
+    "StartupKey": "WindowsUpdaterService",
+    "LogDirectory": "Logs"
+}</code></pre>
+            
+            <h2>Detection Signatures</h2>
+            <h3>YARA Rule</h3>
+            <pre><code>rule KogaCheat_RAT {
+    meta:
+        description = "Detects KogaCheat RAT payload"
+        author = "Your Name"
+        date = "2023-01-01"
+    strings:
+        $mutex = "ba0cfc2c-fb1b-497f-817a-3422ffcbb55c"
+        $server = "192.168.178.61:4848"
+        $task = "WindowsUpdaterService"
+    condition:
+        any of them
+}</code></pre>
+            
+            <div class="warning">
+                <h3>Disclaimer</h3>
+                <p>This analysis is based on observed behavior in a controlled environment. Actual payloads may vary across campaigns. Always verify IOCs in your environment.</p>
+                <p><strong>Threat Actor:</strong> AN ITALIAN GAMER</p>
+                <p>Sample has been taken down.</p>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
